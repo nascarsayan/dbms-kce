@@ -87,3 +87,4 @@ where model in
     where hd >= 10
 ) select distinct maker, speed from laptop_and_makers_10gb
 where maker in (select * from makers_with_10gb_laptops);
+
