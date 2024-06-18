@@ -41,3 +41,5 @@ select model, avg(speed), avg(ram), avg(hd), avg(price), min(price) as min_price
 from pc
 group by model) as q1
 where min_price > 500;
+
+
