@@ -88,3 +88,67 @@ where model in
 ) select distinct maker, speed from laptop_and_makers_10gb
 where maker in (select * from makers_with_10gb_laptops);
 
+-- The below query also works and is less costly.
+
+select distinct maker, speed
+from laptop left join product
+on laptop.model = product.model
+where hd >= 10;
+
+###### Views
+
+create view makers_with_10gb_laptops as (
+select distinct maker from product
+where model in
+(select model
+ from laptop
+ where hd >= 10
+));
+
+select * from makers_with_10gb_laptops;
+
+-- you cannot insert into view;
+-- as the name implies it's read only.
+# insert into makers_with_10gb_laptops values('X');
+
+drop view makers_with_10gb_laptops;
+
+### Indexes
+
+select * from pc where hd > 10 and hd < 1000;
+
+create index pc_hd on pc(hd);
+
+drop index pc_hd on pc;
+
+### Transactions
+
+drop table if exists bank_balance;
+
+create table if not exists bank_balance (
+    name varchar(255) primary key,
+    balance int
+);
+
+insert into bank_balance values
+('Tom', 200), ('Jerry', 500);
+
+start transaction;
+
+set @amount = 50;
+set @debitor = 'Tom';
+set @creditor = 'Jerry';
+
+update bank_balance
+set balance = balance - @amount
+where name = @debitor;
+
+update bank_balance
+set balance = balance + @amount
+where name = @creditor;
+
+commit;
+# rollback;
+
+-- ACID properties
+
