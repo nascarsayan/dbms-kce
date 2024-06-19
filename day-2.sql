@@ -1,4 +1,5 @@
 /*
+ Q7
  Get the models and prices for all commercially available products (of any type)
  produced by maker B.
  */
