@@ -5,21 +5,23 @@ create table if not exists bank_balance (
     balance int
 );
 create table if not exists transactions (
+    id int primary key auto_increment,
     date datetime,
-    account_name varchar(255),
+    debitor varchar(255),
+    creditor varchar(255),
     amount varchar(255)
 );
 
 insert into bank_balance values
 ('Tom', 200), ('Jerry', 500);
 
-create trigger on_balance_update
-after update on bank_balance
-for each row
-    begin
-        insert into transactions (date, account_name, amount)
-            values (now(), new.name, new.balance - old.balance);
-    end;
+# create trigger on_balance_update
+# after update on bank_balance
+# for each row
+#     begin
+#         insert into transactions (date, account_name, amount)
+#             values (now(), new.name, new.balance - old.balance);
+#     end;
 
 drop procedure if exists money_transfer;
 
@@ -62,6 +64,9 @@ begin
 
         insert into logs select
             concat('credited amount to ', creditor);
+
+        insert into transactions(date, debitor, creditor, amount)
+        values (now(), debitor, creditor, amount);
 
         commit;
     end if;
