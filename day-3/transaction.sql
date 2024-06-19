@@ -56,10 +56,11 @@ begin
     insert into logs
         select concat('bank balance of ', name, ' is ', balance)
         from bank_balance
-        where name in ('Tom', 'Jerry');
+        where name in (debitor, creditor);
 
     select * from logs;
-end $$@@
+end
+$$@@
 
 call money_transfer(
      50, 'Tom', 'Jerry'
