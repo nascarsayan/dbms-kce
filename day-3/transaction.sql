@@ -1,12 +1,25 @@
 drop table if exists bank_balance;
-
+drop table if exists transactions;
 create table if not exists bank_balance (
     name varchar(255) primary key,
     balance int
 );
+create table if not exists transactions (
+    date datetime,
+    account_name varchar(255),
+    amount varchar(255)
+);
 
 insert into bank_balance values
 ('Tom', 200), ('Jerry', 500);
+
+create trigger on_balance_update
+after update on bank_balance
+for each row
+    begin
+        insert into transactions (date, account_name, amount)
+            values (now(), new.name, new.balance - old.balance);
+    end;
 
 drop procedure if exists money_transfer;
 
