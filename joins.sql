@@ -41,9 +41,19 @@ select distinct model, type from laptop, (select 'Laptop' as type) as q1
 union
 select distinct model, type from pc, (select 'PC' as type) as q1
 union
-select distinct model, q1.type from printer, (select 'Printer' as type) as q1
+select distinct model, q1.type from printer, (select 'Printer' as type) as q1;
 
 /*
  Question: Find all products which are not commercially available.
  */
 
+with commercially_available_models as (
+    select distinct model, type from laptop, (select 'Laptop' as type) as q1
+    union
+    select distinct model, type from pc, (select 'PC' as type) as q1
+    union
+    select distinct model, q1.type from printer, (select 'Printer' as type) as q1
+)
+(select distinct model, type from product)
+except
+(select * from commercially_available_models);
