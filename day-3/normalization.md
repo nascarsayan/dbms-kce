@@ -173,4 +173,3 @@ erDiagram
     students zero or more to zero or more courses : enrolments
     courses zero or more to one subjects : contains
 ```
-

@@ -157,3 +157,30 @@ select maker, count(type) as cnt from product
 where type = 'PC'
 group by maker
 having cnt >= 3;
+
+/* Question
+   The model numbers of Vitya's printer and Olya's laptop
+   differ by the ten's digit only.
+   Find all possible model combinations of Vitya's printer and Olya's laptop.
+*/
+
+delimiter %%
+create function remove_tens_digit
+    (
+        val int
+    ) returns int
+    reads sql data
+    begin
+        # 1579 : 159
+        # 1579 / 100 = 15
+        # 15 * 10 + 9
+        return (val div 100) * 10 + val % 10;
+    end
+%%
+with
+printer as (select model, remove_tens_digit(model)
+    as v from product where type = 'Printer'),
+laptop as (select model, remove_tens_digit(model)
+    as v from product where type = 'Laptop')
+select printer.model, laptop.model
+from printer inner join laptop on printer.v = laptop.v;
