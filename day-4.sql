@@ -207,6 +207,12 @@ where p1.maker = p2.maker;
 select * from printer p1 inner join printer p2
 on p1.type != p2.type and p1.color = p2.color;
 
+-- NOTE: below query have the same execution plan as the above one.
+
+select * from printer p1, printer p2
+where p1.color = p2.color
+and p1.type != p2.type;
+
 /*
  The screen of Dima's laptop
  is 3 inches bigger than the screen of Olya's one.
