@@ -241,7 +241,8 @@ begin
     set @reversed := 0, @tmpNum := num;
     label:
     while (@tmpNum > 0) do
-        # TODO: add logic
+        set @reversed = @reversed * 10 + @tmpNum % 10;
+        set @tmpNum = @tmpNum div 10;
     end while label;
     if @reversed = num
         then return 'y';
@@ -250,5 +251,18 @@ begin
     end if;
 end %%
 
-select is_palindrome(1331);
-select is_palindrome(123);
+drop function if exists is_palindrome_2;
+delimiter %%
+create function is_palindrome_2(
+    num int
+) returns varchar(1)
+deterministic
+begin
+    set @n := concat(num);
+    return if(
+           strcmp(@n, reverse(@n)) = 0,
+           'y', 'n');
+end %%
+
+select is_palindrome_2(1331);
+select is_palindrome_2(123);
