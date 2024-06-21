@@ -137,3 +137,12 @@ limit 3)
 select * from pc where code not in (
 select * from excluded_results)
 order by price desc, hd desc, speed desc;
+
+-- alternatively, get the ranks,
+
+with pc_with_rank as (
+select *, row_number()
+over (order by price desc, hd desc, speed desc)
+as _rank
+from pc)
+select * from pc_with_rank where _rank > 3;
