@@ -230,10 +230,25 @@ where p1.price = p2.price * 4;
  and costs like Vitya's printer
  */
 
+drop function if exists is_palindrome;
+
 delimiter %%
 create function is_palindrome(
     num int
 ) returns varchar(1)
+deterministic
 begin
-    
+    set @reversed := 0, @tmpNum := num;
+    label:
+    while (@tmpNum > 0) do
+        # TODO: add logic
+    end while label;
+    if @reversed = num
+        then return 'y';
+    else
+        return 'n';
+    end if;
 end %%
+
+select is_palindrome(1331);
+select is_palindrome(123);
