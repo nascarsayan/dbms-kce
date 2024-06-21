@@ -112,3 +112,28 @@ from
 product_percentage as p right join (all_makers, all_types)
 on p.type = all_types.type and p.maker = all_makers.maker
 order by maker, type;
+
+/*
+ get third most costly item
+ */
+
+select *
+from pc
+order by price
+limit 1 offset 1;
+
+/*
+ get all the items except for top 3 by desc
+ price, hd, speed
+ */
+
+# idea is to exclude the top 3 products using their primary key
+# i.e., the code.
+
+with excluded_results as (select code
+from pc
+order by price desc, hd desc, speed desc
+limit 3)
+select * from pc where code not in (
+select * from excluded_results)
+order by price desc, hd desc, speed desc;
