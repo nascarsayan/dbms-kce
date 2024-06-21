@@ -158,7 +158,13 @@ where type = 'PC'
 group by maker
 having cnt >= 3;
 
-/* Question
+#############################################
+
+/*
+ https://sql-ex.ru/exercises.php?N=1%20&X=1
+ */
+
+/*
    The model numbers of Vitya's printer and Olya's laptop
    differ by the ten's digit only.
    Find all possible model combinations of Vitya's printer and Olya's laptop.
@@ -178,9 +184,56 @@ create function remove_tens_digit
     end
 %%
 with
-printer as (select model, remove_tens_digit(model)
+printer as (select *, remove_tens_digit(model)
     as v from product where type = 'Printer'),
-laptop as (select model, remove_tens_digit(model)
+laptop as (select *, remove_tens_digit(model)
     as v from product where type = 'Laptop')
-select printer.model, laptop.model
+select *
 from printer inner join laptop on printer.v = laptop.v;
+
+/*
+ Dima and Misha use products by the same maker.
+ */
+
+select *
+from product p1 inner join product p2
+where p1.maker = p2.maker;
+
+/*
+ The type of Tanya's printer differs from the Vitya’s one,
+ but their color properties have the same value.
+ */
+
+select * from printer p1 inner join printer p2
+on p1.type != p2.type and p1.color = p2.color;
+
+/*
+ The screen of Dima's laptop
+ is 3 inches bigger than the screen of Olya's one.
+ */
+
+select * from laptop l1 inner join laptop l2
+where l1.screen = l2.screen + 3;
+
+/*
+ Misha's PC is 4 times more expensive than Tanya's printer.
+ */
+
+select * from pc p1 inner join printer p2
+where p1.price = p2.price * 4;
+
+/*
+ Kostya's PC has
+ a processor speed like Misha's PC;
+ a hard drive capacity like Dima's laptop;
+ a RAM capacity like Olya's laptop;
+ and costs like Vitya's printer
+ */
+
+delimiter %%
+create function is_palindrome(
+    num int
+) returns varchar(1)
+begin
+    
+end %%
