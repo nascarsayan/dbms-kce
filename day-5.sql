@@ -87,17 +87,28 @@ all_types as (
     select distinct type from Product
 ),
 total_products_by_maker as (
-select maker, count(maker) as total
-from Product
-group by maker),
+    select maker, count(maker) as total
+    from Product
+    group by maker
+),
 all_makers as (
     select distinct maker from total_products_by_maker
 ),
+total_products_per_type_by_maker as (
+    select product.maker, type,
+    count(model) as total_per_type from product
+    group by maker, type
+),
 product_percentage as (
-select product.maker, type, round(count(model) * 100 / total , 2) as percentage from product
-inner join total_products_by_maker on product.maker = total_products_by_maker.maker
-group by maker, type)
-select all_makers.maker, all_types.type, ifnull(percentage, 0) as percentage from
+    select t1.maker, type,
+         round((total_per_type * 100 / total), 2) as percentage
+    from total_products_by_maker as t1,
+        total_products_per_type_by_maker as t2
+    where t1.maker = t2.maker
+)
+select all_makers.maker, all_types.type,
+       ifnull(percentage, 0) as percentage
+from
 product_percentage as p right join (all_makers, all_types)
 on p.type = all_types.type and p.maker = all_makers.maker
 order by maker, type;
