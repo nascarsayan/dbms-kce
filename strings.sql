@@ -1,3 +1,5 @@
+# substring_index(S1, S2, N)
+# get the index of Nth occurrence a substring S2 inside another string S1
 select substring_index(cd, 'x', 1), cd from pc;
 
 # Get last 2 characters for every cd in pc
