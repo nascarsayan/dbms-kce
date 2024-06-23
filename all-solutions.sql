@@ -257,7 +257,7 @@ select o.point, o.date, inc, `out`
  [i.e. the code column is the primary key],
  display a table with one corresponding row for each operating date of each collection point.
 
-Result set: point, date, total payout per day (out), total money intake per day (inc).
+ Result set: point, date, total payout per day (out), total money intake per day (inc).
  Missing values are considered to be NULL.
  */
 
@@ -270,16 +270,17 @@ select o.point, o.date, `out`, inc from i right join o on (i.date, i.point) = (o
 
 /*
  Exercise: 31 (Serge I: 2002-10-22)
-For ship classes with a gun caliber of 16 in. or more, display the class and the country.
+ For ship classes with a gun caliber of 16 in. or more, display the class and the country.
  */
 
 select class, country from Classes where bore >= 16;
 
 /*
-One of the characteristics of a ship is
-one-half the cube of the calibre of its main guns (mw).
-Determine the average ship mw with an accuracy of two decimal places
-for each country having ships in the database.
+ Exercise: 32 (Serge I: 2003-02-17)
+ One of the characteristics of a ship is
+ one-half the cube of the calibre of its main guns (mw).
+ Determine the average ship mw with an accuracy of two decimal places
+ for each country having ships in the database.
  */
 
 select country, round(avg(0.5 * pow(bore, 3)), 2) from (
@@ -289,7 +290,7 @@ select country, round(avg(0.5 * pow(bore, 3)), 2) from (
 ) all_ships group by country;
 
 /*
- Q33.
+ Exercise: 33 (Serge I: 2002-11-02)
  Get the ships sunk in the North Atlantic battle.
  Result set: ship.
  */
@@ -297,19 +298,182 @@ select country, round(avg(0.5 * pow(bore, 3)), 2) from (
 select distinct ship from Outcomes where result = 'sunk' and battle = 'North Atlantic';
 
 /*
- Q34.
+ Exercise: 34 (Serge I: 2002-11-04)
  In accordance with the Washington Naval Treaty concluded in the beginning of 1922,
  it was prohibited to build battle ships with a displacement of more than 35 thousand tons.
 Get the ships violating this treaty (only consider ships for which the year of launch is known).
 List the names of the ships.
  */
 
--- Skip for now, hw
+select name from Ships, Classes
+where Ships.class = Classes.class
+and type = 'bb'
+and launched is not null
+and launched >= 1922 and displacement > 35000;
 
-/* 35, 40, 41, 58,
+/*
+  Exercise: 35 (qwrqwr: 2012-11-23)
+
+  Find models in the Product table consisting either of digits only
+  or Latin letters (A-Z, case insensitive) only.
+  Result set: model, type.
+*/
+
+select model, type
+from Product
+where model regexp '^\\d+$' or lower(model) regexp '^[a-z]+$';
+
+/*
+ Exercise: 36 (Serge I: 2003-02-17)
+ List the names of lead ships in the database (including the Outcomes table).
  */
 
-/* Q58 */
+select distinct name from classes, (
+    select distinct name from Ships
+    union
+    select distinct ship as name from Outcomes
+) as all_ships
+where Classes.class = all_ships.name;
+
+/*
+ Exercise: 37 (Serge I: 2003-02-17)
+ Find classes for which only one ship exists in the database (including the Outcomes table).
+ */
+
+select class from (
+    select name, class from ships
+    union
+    (select ship as name, class from Outcomes, Classes
+    where Outcomes.ship = Classes.class)
+) s group by class having count(*) = 1;
+
+/*
+ Exercise: 38 (Serge I: 2003-02-19)
+
+Find countries that ever had classes of both battleships (‘bb’) and cruisers (‘bc’).
+ */
+
+select country from Classes
+where type in ('bb', 'bc')
+group by country
+having count(distinct type) = 2;
+
+/*
+ Exercise: 39 (Serge I: 2003-02-14)
+
+ Find the ships that `survived for future battles`;
+ that is, after being damaged in a battle,
+ they participated in another one, which occurred later.
+ */
+
+with b as (
+select `date`, battle, ship, result from battles, outcomes
+where battle = name
+) select distinct b1.ship from b b1, b b2
+where b1.ship = b2.ship
+and b1.date < b2.date
+and b1.result = 'damaged';
+
+/*
+ Exercise: 40 (Serge I: 2012-04-20)
+
+ Get the makers who produce only one product type and more than one model. Output: maker, type.
+ */
+
+select maker, min(type) from
+Product
+group by maker
+having count(distinct type) = 1 and count(distinct model) > 1;
+
+
+/*
+ Exercise: 41 (Serge I: 2019-05-31)
+ For each maker who has models at least in one of the tables PC, Laptop,
+ or Printer, determine the maximum price for his products.
+ Output: maker; if there are NULL values among the prices for the products of a given maker,
+ display NULL for this maker, otherwise, the maximum price.
+ */
+
+with commercial_models as (
+    select model, price from PC
+    union
+    select model, price from Laptop
+    union
+    select model, price from Printer
+), models as (
+    select maker, price from commercial_models inner join Product
+    on commercial_models.model = Product.model
+), null_makers as (
+    select distinct maker from models where price is null
+)
+select models.maker, if(null_makers.maker is not null, null, max(price)) as price
+from models left join null_makers
+on models.maker = null_makers.maker
+group by models.maker;
+
+/*
+ Exercise: 42 (Serge I: 2002-11-05)
+
+ Find the names of ships sunk at battles, along with the names of the corresponding battles.
+ */
+
+select ship, battle from Outcomes
+where result = 'sunk';
+
+/*
+ Exercise: 43 (qwrqwr: 2011-10-28)
+
+Get the battles that occurred in years when no ships were launched into water.
+ */
+
+select distinct name from Battles
+where year(date) not in (select distinct launched from Ships where launched is not null);
+
+-- NOTE: why does the following not work?
+
+# select distinct name from Battles
+# where
+# year(date) is null or
+# year(date) not in (select distinct launched from Ships);
+
+/*
+ Exercise: 45 (Serge I: 2002-12-04)
+
+Find all ship names consisting of three or more words (e.g., King George V).
+Consider the words in ship names to be separated by single spaces,
+ and the ship names to have no leading or trailing spaces.
+ */
+
+select name from (
+    select name from Ships
+    union
+    select ship from Outcomes
+) q1 where length(name) - length(replace(name, ' ', '')) >= 2;
+
+/*
+ Exercise: 46 (Serge I: 2003-02-14)
+
+For each ship that participated in the Battle of Guadalcanal,
+ get its name, displacement, and the number of guns.
+ */
+
+# TODO: Fix the query (include ships from Outcomes)
+
+select distinct Ships.name, Classes.displacement, Classes.numGuns
+from Battles, Outcomes, Ships, Classes
+where Battles.name = Outcomes.battle
+and battle = 'Guadalcanal'
+and Outcomes.ship = Ships.name
+and Ships.class = Classes.class;
+
+/*
+   Q58
+   For each product type and maker in the Product table, find out,
+   with a precision of two decimal places, the percentage ratio of
+   the number of models of the actual type produced by the actual maker to
+   the total number of models by this maker.
+   Result set: maker, product type, the percentage ratio mentioned above.
+*/
 
 with
 total_products_by_maker as (
@@ -342,23 +506,4 @@ select all_makers.maker, all_types.type, ifnull(percentage, 0) as percentage fro
 product_percentage as p right join (all_makers, all_types)
 on p.type = all_types.type and p.maker = all_makers.maker
 order by maker, type;
-
-/* Q41 */
-
-with commercial_models as (
-    select model, price from PC
-    union
-    select model, price from Laptop
-    union
-    select model, price from Printer
-), models as (
-    select maker, price from commercial_models inner join Product
-    on commercial_models.model = Product.model
-), null_makers as (
-    select distinct maker from models where price is null
-)
-select models.maker, if(null_makers.maker is not null, null, max(price)) as price
-from models left join null_makers
-on models.maker = null_makers.maker
-group by models.maker;
 
